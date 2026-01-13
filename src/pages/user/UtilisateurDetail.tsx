@@ -1,28 +1,13 @@
-import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { ArrowLeft, CheckCircle, Clock, Mail, MapPin, Calendar} from 'lucide-react';
-import { allUsersData } from '../../data/usersMocks';
-import { allProjectsData } from '../../data/projectsMock';
+import { ArrowLeft, CheckCircle, Clock, Calendar} from 'lucide-react';
+import {useFetch} from "../../hook/useFetch.ts";
+import type {User} from "../../types";
+import {userService} from "../../services/api.ts";
 
 export default function UtilisateurDetail() {
     const { id } = useParams();
-    const [user, setUser] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        setLoading(true);
-        const timer = setTimeout(() => {
-            const foundUser = allUsersData.find(u => u._id === id);
-            if (foundUser) {
-                const userProjects = allProjectsData.filter(p =>
-                    p.author === foundUser._id || (p.members?.includes(foundUser._id))
-                );
-                setUser({ ...foundUser, projects: userProjects });
-            }
-            setLoading(false);
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [id]);
+    const {data: user, loading, error} = useFetch<User>(() => userService.getById(id!), [id]);
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950">
@@ -30,15 +15,24 @@ export default function UtilisateurDetail() {
         </div>
     );
 
-    if (!user) return (
+    if (error || !user) return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-gray-950">
             <h2 className="text-lg font-medium text-gray-400">Utilisateur introuvable</h2>
             <Link to="/utilisateurs" className="mt-4 text-indigo-600 text-sm font-semibold">Retourner à la liste</Link>
+            {error && <p className="mt-2 text-red-500">{error}</p>}
         </div>
     );
 
-    const displayName = user.fullName || user.name || "Utilisateur";
-    const initials = displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2);
+    const displayName = user.name && user.surname
+        ? `${user.name} ${user.surname}`
+        : "Utilisateur";
+
+    const initials = displayName
+        .split(' ')
+        .map((n: string) => n[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase();
 
     return (
         <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
@@ -49,16 +43,16 @@ export default function UtilisateurDetail() {
                 </Link>
 
                 <header className="flex flex-col md:flex-row gap-8 items-center md:items-start border-b border-gray-100 dark:border-gray-900 pb-12 mb-12">
-                    <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-2xl font-bold text-gray-400 shrink-0">
+                    <div className="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-2xl font-bold text-gray-400 shrink-0">
                         {initials}
                     </div>
 
                     <div className="flex-1 text-center md:text-left">
                         <h1 className="text-4xl font-bold mb-4">{displayName}</h1>
                         <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm text-gray-500">
-                            <div className="flex items-center gap-2"><Mail className="w-4 h-4" /> {user.email}</div>
-                            {user.location && <div className="flex items-center gap-2"><MapPin className="w-4 h-4" /> {user.location}</div>}
-                            <div className="flex items-center gap-2"><Calendar className="w-4 h-4" /> Membre depuis {new Date(user.createdAt || Date.now()).getFullYear()}</div>
+                            <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4" /> Membre depuis {user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            </div>
                         </div>
                     </div>
 

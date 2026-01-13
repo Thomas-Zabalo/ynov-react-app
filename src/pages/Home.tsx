@@ -1,9 +1,9 @@
 import ProjectCard from "../components/ProjectCard.tsx";
-import {useEffect, useState} from "react";
-import type {Project} from "../types";
+import {useState} from "react";
 import {Calendar, CheckCircle2, Clock, Search} from "lucide-react";
-import {allProjectsData} from "../data/projectsMock.ts";
 import Hero from "../components/Hero.tsx";
+import {useFetch} from "../hook/useFetch.ts";
+import {projectService} from "../services/api.ts";
 
 const statusColors = {
     "Complété": {
@@ -24,23 +24,14 @@ const statusColors = {
 };
 
 export default function Home() {
-    const [projectList, setProjectList] = useState<Project[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [loading, setLoading] = useState(true);
 
     const [currentPage, setCurrentPage] = useState(1);
     const projectsPerPage = 9;
 
-    useEffect(() => {
-        setLoading(true);
-        const timer = setTimeout(() => {
-            setProjectList(allProjectsData as Project[]);
-            setLoading(false);
-        }, 500);
-        return () => clearTimeout(timer);
-    }, []);
+    const { data: projectList, loading, error } = useFetch(() => projectService.getAll(), []);
 
-    const filteredProjects = projectList.filter(project =>
+    const filteredProjects = (projectList || []).filter(project =>
         project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         project.category.toLowerCase().includes(searchQuery.toLowerCase())
@@ -54,12 +45,13 @@ export default function Home() {
 
     const handlePrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
     const handleNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+
     return (
         <div className="min-h-screen">
 
             <Hero
-                title="Mes documents"
-                subtitle="Explorez et gérez tous vos documents en un seul endroit"
+                title="Tous les projets"
+                subtitle="Découvrez tous les projets en cours, planifiés ou complétés, et explorez les contributions de chaque membre."
             />
 
             <div className="mx-auto max-w-7xl px-8 py-12">
@@ -85,6 +77,8 @@ export default function Home() {
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                         <span className="ml-4 dark:text-white">Chargement des projets...</span>
                     </div>
+                ) : error ? (
+                    <div className="text-center py-24 text-red-500">{error}</div>
                 ) : filteredProjects.length > 0 ? (
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

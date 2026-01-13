@@ -1,28 +1,19 @@
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {useNavigate} from 'react-router';
-import {Briefcase, Mail, Search} from 'lucide-react';
-import {allUsersData} from "../../data/usersMocks.ts";
-import type {User} from "../../types";
+import {Briefcase, Search} from 'lucide-react';
+import {useFetch} from "../../hook/useFetch.ts";
+import {userService} from "../../services/api.ts";
 
 export default function Utilisateurs() {
     const navigate = useNavigate();
-    const [users, setUsers] = useState<User[]>([]);
-    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
     const [currentPage, setCurrentPage] = useState(1);
     const usersPerPage = 10;
 
-    useEffect(() => {
-        setLoading(true);
-        const timer = setTimeout(() => {
-            setUsers(allUsersData);
-            setLoading(false);
-        }, 500);
-        return () => clearTimeout(timer);
-    }, []);
+    const {data: users, loading, error} = useFetch(() => userService.getAll(), []);
 
-    const filteredUsers = users.filter(user => {
+    const filteredUsers = (users || []).filter(user => {
         const name = `${user.name} ${user.surname}`;
         const email = user.email || "";
         return name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -41,6 +32,12 @@ export default function Utilisateurs() {
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+        </div>
+    );
+
+    if (error) return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-gray-950">
+            <p className="text-red-500 text-lg font-semibold mb-4">Erreur : {error}</p>
         </div>
     );
 
@@ -80,7 +77,6 @@ export default function Utilisateurs() {
                             <thead className="bg-gray-50 dark:bg-gray-800/50">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Utilisateur</th>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider hidden md:table-cell">Email</th>
                                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Projets</th>
                                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider hidden md:table-cell">Inscription</th>
                             </tr>
@@ -98,32 +94,36 @@ export default function Utilisateurs() {
                                     >
                                         <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-semibold text-sm">
+                                                <div
+                                                    className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-black dark:text-white font-semibold text-sm">
                                                     {displayName.split(' ').map(n => n[0]).join('')}
                                                 </div>
                                                 <span className="truncate">{displayName}</span>
                                             </div>
                                         </td>
 
-                                        <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 hidden md:table-cell">
-                                            <div className="flex items-center gap-2">
-                                                <Mail className="w-4 h-4"/>
-                                                {user.email}
-                                            </div>
-                                        </td>
-
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <Briefcase className="w-4 h-4 text-gray-400 dark:text-gray-500"/>
-                                                <span className="text-sm font-medium text-gray-900 dark:text-white">{projectsCount}</span>
-                                                <span className="text-sm text-gray-500 dark:text-gray-400 hidden md:inline">
+                                                <span
+                                                    className="text-sm font-medium text-gray-900 dark:text-white">{projectsCount}</span>
+                                                <span
+                                                    className="text-sm text-gray-500 dark:text-gray-400 hidden md:inline">
                                                     {projectsCount > 1 ? 'projets' : 'projet'}
                                                 </span>
                                             </div>
                                         </td>
 
                                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 hidden md:table-cell">
-                                            {user.joinDate}
+                                            {user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', {
+                                                day: 'numeric',
+                                                month: 'long',
+                                                year: 'numeric'
+                                            }) : new Date().toLocaleDateString('fr-FR', {
+                                                day: 'numeric',
+                                                month: 'long',
+                                                year: 'numeric'
+                                            })}
                                         </td>
                                     </tr>
                                 );
@@ -133,11 +133,15 @@ export default function Utilisateurs() {
                     </div>
 
                     {totalPages > 1 && (
-                        <div className="flex flex-col md:flex-row justify-between items-center p-6 border-t border-gray-200 dark:border-gray-700">
+                        <div
+                            className="flex flex-col md:flex-row justify-between items-center p-6 border-t border-gray-200 dark:border-gray-700">
                             <div className="text-sm text-gray-600 dark:text-gray-300 mb-4 md:mb-0">
-                                Affichage de <span className="font-semibold text-gray-900 dark:text-white">{indexOfFirstUser + 1}</span> à{' '}
-                                <span className="font-semibold text-gray-900 dark:text-white">{Math.min(indexOfLastUser, filteredUsers.length)}</span> sur{' '}
-                                <span className="font-semibold text-gray-900 dark:text-white">{filteredUsers.length}</span> utilisateurs
+                                Affichage de <span
+                                className="font-semibold text-gray-900 dark:text-white">{indexOfFirstUser + 1}</span> à{' '}
+                                <span
+                                    className="font-semibold text-gray-900 dark:text-white">{Math.min(indexOfLastUser, filteredUsers.length)}</span> sur{' '}
+                                <span
+                                    className="font-semibold text-gray-900 dark:text-white">{filteredUsers.length}</span> utilisateurs
                             </div>
                             <div className="flex items-center gap-2">
                                 <button

@@ -1,10 +1,9 @@
-import {useEffect, useState} from 'react';
 import {Link, useLocation, useParams} from "react-router";
-import {ArrowLeft, Calendar, CheckCircle2, Clock, FileText, Users} from 'lucide-react';
+import {ArrowLeft, Calendar, CheckCircle2, Clock, FileText, User, Users} from 'lucide-react';
+import {useFetch} from "../../hook/useFetch.ts";
 import type {Project} from "../../types";
 import {formatDate} from "../../utils/dateFormatter.tsx";
-import {allProjectsData} from "../../data/projectsMock.ts";
-import {allUsersData} from "../../data/usersMocks.ts";
+import {projectService} from "../../services/api.ts";
 
 const categoryColors = {
     Design: "bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400",
@@ -29,23 +28,21 @@ export default function ProjectDetail() {
     const {id} = useParams<{ id: string }>();
     const location = useLocation();
 
-    const [project, setProject] = useState<Project | null>(null);
-    const [loading, setLoading] = useState(true);
+    const {data: project, loading, error} = useFetch<Project>(() => projectService.getById(id!), [id]);
 
-    useEffect(() => {
-        setLoading(true);
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+        </div>
+    );
 
-        const timer = setTimeout(() => {
-            const fromState = location.state?.project as Project | undefined;
-            const foundProject =
-                fromState ?? allProjectsData.find(p => p._id === id);
-
-            setProject(foundProject as Project || null);
-            setLoading(false);
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [id, location.state]);
+    if (error || !project) return (
+        <div className="min-h-screen flex flex-col items-center justify-center">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Projet introuvable</h2>
+            <Link to="/" className="mt-4 text-indigo-600 hover:underline">Retour à l'accueil</Link>
+            {error && <p className="mt-2 text-red-500">{error}</p>}
+        </div>
+    );
 
     const parseMarkdown = (text: string = "") => {
         if (!text) return <p className="text-gray-500 italic">Aucune documentation détaillée disponible.</p>;
@@ -69,23 +66,8 @@ export default function ProjectDetail() {
         });
     };
 
-
-    if (loading) return (
-        <div className="min-h-screen flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-        </div>
-    );
-
-    if (!project) return (
-        <div className="min-h-screen flex flex-col items-center justify-center">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Projet introuvable</h2>
-            <Link to="/" className="mt-4 text-indigo-600 hover:underline">Retour à l'accueil</Link>
-        </div>
-    );
-
-    const members = allUsersData.filter(user =>
-        project.members?.includes(user._id)
-    );
+    const members = project.members || [];
+    const author = project.author;
 
     const statusInfo = statusColors[project.status as keyof typeof statusColors] || statusColors["Planifié"];
     const StatusIcon = statusInfo.icon;
@@ -144,25 +126,50 @@ export default function ProjectDetail() {
                             </div>
                         </div>
 
-                        {members.length > 0 && (
+                        {author && (
                             <div
                                 className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-3 sm:p-5 shadow-sm">
                                 <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-wide mb-2 sm:mb-4 flex items-center gap-1 sm:gap-2 text-gray-900 dark:text-white">
-                                    <Users className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-600"/>
-                                    Équipe ({members.length})
+                                    <User className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-600"/> Auteur
                                 </h3>
-                                <div className="space-y-2 sm:space-y-3">
-                                    {members.map(member => (
-                                        <Link
-                                            key={member._id}
-                                            to={`/utilisateurs/${member._id}`}
-                                            className="block bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-2 sm:p-3 text-center border border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-800 transition"
-                                        >
-                                            <p className="text-[10px] sm:text-xs font-semibold text-indigo-700 dark:text-indigo-300">
-                                                {member.name} {member.surname}
-                                            </p>
-                                        </Link>
-                                    ))}
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{author.name} {author.surname}</p>
+                            </div>
+                        )}
+
+                        {members.length > 0 && (
+                            <div
+                                className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-3 sm:p-5 shadow-sm">
+                                <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-wide mb-4 flex items-center justify-between text-gray-900 dark:text-white">
+                                    <span className="flex items-center gap-2">
+                                        <Users className="w-4 h-4 text-indigo-600"/> Équipe
+                                    </span>
+                                    <span
+                                        className="text-[10px] bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full text-gray-500">
+                                        {members.length}
+                                    </span>
+                                </h3>
+
+                                <div className="flex flex-wrap gap-2">
+                                    {members.map((member) => {
+                                        const initials = `${member.name[0]}${member.surname[0]}`.toUpperCase();
+                                        return (
+                                            <Link
+                                                key={member._id}
+                                                to={`/utilisateurs/${member._id}`}
+                                                className="group relative"
+                                            >
+                                                <div
+                                                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center text-[10px] sm:text-xs font-bold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-600 hover:text-white transition-all duration-200">
+                                                    {initials}
+                                                </div>
+
+                                                <span
+                                                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-gray-900 text-white text-[10px] py-1 px-2 rounded whitespace-nowrap z-10">
+                                                    {member.name} {member.surname}
+                                                 </span>
+                                            </Link>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
