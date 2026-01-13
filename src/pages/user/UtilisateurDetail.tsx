@@ -81,7 +81,7 @@ export default function UtilisateurDetail() {
                             user.projects.map((project: any) => (
                                 <Link
                                     key={project._id}
-                                    to={`/projects/${project._id}`}
+                                    to={`/projets/${project._id}`}
                                     className="group p-6 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 transition-all flex items-center justify-between"
                                 >
                                     <div className="space-y-2">
