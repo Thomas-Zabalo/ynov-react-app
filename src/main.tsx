@@ -7,19 +7,20 @@ import Home from "./pages/Home.tsx";
 import Menu from "./components/navigation/Menu.tsx";
 import Utilisateurs from "./pages/user/Utilisateurs.tsx";
 import {FavoriteProvider} from "./provider/favoriteProvider.tsx";
+import {ThemeProvider} from "./provider/themeProvider.tsx";
 
 export default function AppRouter() {
     return (
         <div className="isolate">
-            <main className="flex min-h-dvh flex-col bg-white">
+            <main className="flex min-h-dvh flex-col bg-white dark:bg-gray-950/10">
                 <div
                     className="relative isolate grid flex-1 grid-rows-[1fr_auto] overflow-clip grid-cols-[var(--sidebar-width)_var(--gutter-width)_auto_var(--gutter-width)] [--sidebar-width:0] 2xl:[--sidebar-width:--spacing(72)] [--gutter-width:--spacing(6)] 2xl:[--gutter-width:--spacing(10)]">
                     <div
-                        className="col-start-2 row-span-full row-start-1 max-2xl:hidden border-x border-gray-200 bg-size-[10px_10px] bg-fixed bg-[repeating-linear-gradient(315deg,rgb(243_244_246)_0,rgb(243_244_246)_1px,transparent_0,transparent_50%)]">
+                        className="col-start-2 row-span-full row-start-1 max-2xl:hidden border-x border-gray-200 dark:border-gray-800 bg-size-[10px_10px] bg-fixed bg-[repeating-linear-gradient(315deg,rgb(243_244_246)_0,rgb(243_244_246)_1px,transparent_0,transparent_50%)] dark:bg-[repeating-linear-gradient(315deg,rgb(31_41_55)_0,rgb(31_41_55)_1px,transparent_0,transparent_50%)]">
                     </div>
 
                     <div
-                        className="col-start-4 row-span-full row-start-1 max-2xl:hidden border-x border-gray-200 bg-size-[10px_10px] bg-fixed bg-[repeating-linear-gradient(315deg,rgb(243_244_246)_0,rgb(243_244_246)_1px,transparent_0,transparent_50%)]">
+                        className="col-start-4 row-span-full row-start-1 max-2xl:hidden border-x border-gray-200 dark:border-gray-800 bg-size-[10px_10px] bg-fixed bg-[repeating-linear-gradient(315deg,rgb(243_244_246)_0,rgb(243_244_246)_1px,transparent_0,transparent_50%)] dark:bg-[repeating-linear-gradient(315deg,rgb(31_41_55)_0,rgb(31_41_55)_1px,transparent_0,transparent_50%)]">
                     </div>
                     <Menu/>
                     <div className="col-start-3 row-start-1 max-2xl:col-span-full max-2xl:col-start-1">
@@ -39,9 +40,11 @@ export default function AppRouter() {
 }
 
 createRoot(document.getElementById('root')!).render(
-    <FavoriteProvider>
-        <BrowserRouter>
-            <AppRouter/>
-        </BrowserRouter>
-    </FavoriteProvider>
+    <ThemeProvider>
+        <FavoriteProvider>
+            <BrowserRouter>
+                <AppRouter/>
+            </BrowserRouter>
+        </FavoriteProvider>
+    </ThemeProvider>
 );
