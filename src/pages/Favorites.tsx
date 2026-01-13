@@ -1,6 +1,6 @@
 export default function Favorites() {
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-950">
+        <div>
             Je suis la page des favoris
         </div>
     );
