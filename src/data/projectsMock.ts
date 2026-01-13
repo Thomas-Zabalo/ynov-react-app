@@ -70,5 +70,53 @@ export const allProjectsData = [
         author: "2",
         members: ["2", "10", "15", "34", "38", "46"],
         detailedContent: `## Le problème de la documentation\n\nQuand ce projet a démarré, notre documentation était fragmentée...`
+    },
+    {
+        _id: "7",
+        name: "Refonte Mobile App",
+        description: "Amélioration de l'application mobile pour Android et iOS avec nouvelles fonctionnalités UX/UI.",
+        category: "Design",
+        status: "Planifié",
+        startDate: new Date("2024-05-01"),
+        endDate: new Date("2024-08-01"),
+        author: "3",
+        members: ["3", "9", "14", "20", "25", "30", "40"],
+        detailedContent: `## Objectif\n\nModerniser l'application mobile pour offrir une meilleure expérience utilisateur...`
+    },
+    {
+        _id: "8",
+        name: "Optimisation Backend",
+        description: "Refactorisation des endpoints backend et optimisation des performances pour les requêtes lourdes.",
+        category: "Backend",
+        status: "En cours",
+        startDate: new Date("2024-03-20"),
+        endDate: new Date("2024-05-30"),
+        author: "2",
+        members: ["2", "5", "11", "18", "27", "33"],
+        detailedContent: `## Contexte\n\nLes performances backend nécessitent une amélioration suite à l'augmentation du trafic...`
+    },
+    {
+        _id: "9",
+        name: "Infrastructure Cloud",
+        description: "Mise à niveau de l'infrastructure cloud pour supporter la scalabilité et la haute disponibilité.",
+        category: "Infrastructure",
+        status: "Planifié",
+        startDate: new Date("2024-06-01"),
+        endDate: new Date("2024-09-01"),
+        author: "1",
+        members: ["1", "4", "8", "12", "24", "29", "35"],
+        detailedContent: `## Vision\n\nAméliorer l'infrastructure cloud pour répondre aux besoins de croissance de l'application...`
+    },
+    {
+        _id: "10",
+        name: "Automatisation des Tests QA",
+        description: "Création de scripts d'automatisation pour réduire les tests manuels et accélérer le cycle QA.",
+        category: "QA",
+        status: "En cours",
+        startDate: new Date("2024-04-05"),
+        endDate: new Date("2024-06-10"),
+        author: "2",
+        members: ["2", "5", "9", "15", "21", "30"],
+        detailedContent: `## Objectif\n\nMettre en place des tests automatisés pour améliorer la qualité et réduire les bugs...`
     }
 ];
