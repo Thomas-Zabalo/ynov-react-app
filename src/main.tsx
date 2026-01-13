@@ -6,6 +6,7 @@ import Error404 from "./pages/404/Error404.tsx";
 import Home from "./pages/Home.tsx";
 import Menu from "./components/navigation/Menu.tsx";
 import Utilisateurs from "./pages/user/Utilisateurs.tsx";
+import {FavoriteProvider} from "./provider/favoriteProvider.tsx";
 
 export default function AppRouter() {
     return (
@@ -38,7 +39,9 @@ export default function AppRouter() {
 }
 
 createRoot(document.getElementById('root')!).render(
-    <BrowserRouter>
-        <AppRouter/>
-    </BrowserRouter>
+    <FavoriteProvider>
+        <BrowserRouter>
+            <AppRouter/>
+        </BrowserRouter>
+    </FavoriteProvider>
 );
