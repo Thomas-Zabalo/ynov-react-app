@@ -8,6 +8,11 @@ import Menu from "./components/navigation/Menu.tsx";
 import Utilisateurs from "./pages/user/Utilisateurs.tsx";
 import {FavoriteProvider} from "./provider/favoriteProvider.tsx";
 import {ThemeProvider} from "./provider/themeProvider.tsx";
+import {AuthProvider} from "./provider/authProvider.tsx";
+import Login from "./pages/connection/Login.tsx";
+import Register from "./pages/connection/Register.tsx";
+import UtilisateurDetail from "./pages/user/UtilisateurDetail.tsx";
+import ProjectDetail from "./pages/projects/ProjectDetail.tsx";
 
 export default function AppRouter() {
     return (
@@ -27,8 +32,13 @@ export default function AppRouter() {
                         <div className="mx-auto mt-24 max-w-7xl 2xl:mt-20">
                             <Routes>
                                 <Route path="/" element={<Home/>}/>
-                                <Route path="favoris" element={<Favorites/>}/>
+                                <Route path="login" element={<Login/>}/>
+                                <Route path="register" element={<Register/>}/>
                                 <Route path="utilisateurs" element={<Utilisateurs/>}/>
+                                <Route path="utilisateurs/:id" element={<UtilisateurDetail/>}/>
+                                <Route path="projects/:id" element={<ProjectDetail/>}/>
+                                <Route path="favoris" element={<Favorites/>}/>
+
                                 <Route path='*' element={<Error404/>}/>
                             </Routes>
                         </div>
@@ -41,10 +51,12 @@ export default function AppRouter() {
 
 createRoot(document.getElementById('root')!).render(
     <ThemeProvider>
-        <FavoriteProvider>
-            <BrowserRouter>
-                <AppRouter/>
-            </BrowserRouter>
-        </FavoriteProvider>
+        <AuthProvider>
+            <FavoriteProvider>
+                <BrowserRouter>
+                    <AppRouter/>
+                </BrowserRouter>
+            </FavoriteProvider>
+        </AuthProvider>
     </ThemeProvider>
 );
