@@ -17,7 +17,7 @@ const statusColors = {
 
 export default function Favorites() {
     const {favorites} = useFavorites();
-    const [allProjects, setAllProjects] = useState<allProjectsData[]>([]);
+    const [allProjects, setAllProjects] = useState<typeof allProjectsData[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
