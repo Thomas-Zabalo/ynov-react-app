@@ -13,6 +13,11 @@ import Login from "./pages/connection/Login.tsx";
 import Register from "./pages/connection/Register.tsx";
 import UtilisateurDetail from "./pages/user/UtilisateurDetail.tsx";
 import ProjectDetail from "./pages/projects/ProjectDetail.tsx";
+import ProtectedRoute from "./routes/ProtectedRoutes.tsx";
+import AddProject from "./pages/projects/AddProject.tsx";
+import EditProject from "./pages/projects/EditProject.tsx";
+import Profil from "./pages/user/Profil.tsx";
+import MyProject from "./pages/projects/MyProject.tsx";
 
 export default function AppRouter() {
     return (
@@ -36,8 +41,15 @@ export default function AppRouter() {
                                 <Route path="register" element={<Register/>}/>
                                 <Route path="utilisateurs" element={<Utilisateurs/>}/>
                                 <Route path="utilisateurs/:id" element={<UtilisateurDetail/>}/>
-                                <Route path="projects/:id" element={<ProjectDetail/>}/>
+                                <Route path="projets/:id" element={<ProjectDetail/>}/>
                                 <Route path="favoris" element={<Favorites/>}/>
+
+                                <Route element={<ProtectedRoute/>}>
+                                    <Route path="projets/nouveau" element={<AddProject/>}/>
+                                    <Route path="projets/modifier/:id" element={<EditProject/>}/>
+                                    <Route path="mon-profil" element={<Profil/>}/>
+                                    <Route path="mes-projets" element={<MyProject/>}/>
+                                </Route>
 
                                 <Route path='*' element={<Error404/>}/>
                             </Routes>

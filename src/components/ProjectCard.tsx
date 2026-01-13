@@ -34,7 +34,7 @@ export default function ProjectCard({ project, statusInfo }: ProjectCardProps) {
 
     return (
         <NavLink
-            to={`/projects/${project._id}`}
+            to={`/projets/${project._id}`}
             className="block group relative bg-white dark:bg-gray-900 rounded-lg
                        border border-gray-200 dark:border-gray-700 p-6
                        hover:shadow-lg transition-all duration-300 text-left"
