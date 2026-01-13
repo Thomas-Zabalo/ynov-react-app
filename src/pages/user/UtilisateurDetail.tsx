@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { ArrowLeft, CheckCircle, Clock, Mail, MapPin, Calendar, Briefcase, User } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, Mail, MapPin, Calendar} from 'lucide-react';
 import { allUsersData } from '../../data/usersMocks';
 import { allProjectsData } from '../../data/projectsMock';
 
