@@ -12,7 +12,7 @@ import {ThemeProvider} from "./provider/themeProvider.tsx";
 export default function AppRouter() {
     return (
         <div className="isolate">
-            <main className="flex min-h-dvh flex-col bg-white dark:bg-gray-950/10">
+            <main className="flex min-h-dvh flex-col bg-white dark:bg-gray-950">
                 <div
                     className="relative isolate grid flex-1 grid-rows-[1fr_auto] overflow-clip grid-cols-[var(--sidebar-width)_var(--gutter-width)_auto_var(--gutter-width)] [--sidebar-width:0] 2xl:[--sidebar-width:--spacing(72)] [--gutter-width:--spacing(6)] 2xl:[--gutter-width:--spacing(10)]">
                     <div
