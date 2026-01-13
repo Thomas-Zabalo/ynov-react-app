@@ -5,6 +5,7 @@ import Favorites from "./pages/Favorites.tsx";
 import Error404 from "./pages/404/Error404.tsx";
 import Home from "./pages/Home.tsx";
 import Menu from "./components/navigation/Menu.tsx";
+import Utilisateurs from "./pages/user/Utilisateurs.tsx";
 
 export default function AppRouter() {
     return (
@@ -25,6 +26,7 @@ export default function AppRouter() {
                             <Routes>
                                 <Route path="/" element={<Home/>}/>
                                 <Route path="favoris" element={<Favorites/>}/>
+                                <Route path="utilisateurs" element={<Utilisateurs/>}/>
                                 <Route path='*' element={<Error404/>}/>
                             </Routes>
                         </div>
