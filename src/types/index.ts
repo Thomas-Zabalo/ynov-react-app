@@ -13,12 +13,12 @@ export interface Project {
     _id: string;
     name: string;
     description: string;
-    category: 'Developpement' | 'Design' | 'Backend' | 'Frontend';
-    status: 'Planifié' | 'En cours' | 'Complété';
+    category: "Design" | "Backend" | "Developpement" | "Infrastructure" | "QA" | "Documentation";
+    status: "Planifié" | "En cours" | "Complété";
     startDate: string;
     endDate: string;
-    author: string | User;
-    members: string[] | User[];
+    author: string;
+    members: string[];
     detailedContent: string;
 }
 
