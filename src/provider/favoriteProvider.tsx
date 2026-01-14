@@ -1,36 +1,59 @@
-import { createContext, useContext, useState } from "react";
+import {createContext, useContext, useEffect, useState} from "react";
 import * as React from "react";
+import {favoriteService} from "../services/api.ts";
 
 const FavoriteContext = createContext<{
     favorites: string[],
-    toggleFavorite: (id: string | number) => void
+    toggleFavorite: (id: string) => void
 }>({
     favorites: [],
     toggleFavorite: () => {},
 });
 
 export function FavoriteProvider({ children }: { children: React.ReactNode }) {
-    const [favorites, setFavorites] = useState<string[]>(() => {
-        const saved = localStorage.getItem("favorites");
-        if (!saved) return [];
+    const [favorites, setFavorites] = useState<string[]>([]);
+    const token = localStorage.getItem('token');
 
-        const parsed = JSON.parse(saved);
-        return parsed.map((id: any) => String(id));
-    });
+    useEffect(() => {
+        const loadFavorites = async () => {
+            if (token) {
+                try {
+                    const projects = await favoriteService.getAll(token);
 
-    const toggleFavorite = (id: string | number) => {
-        const idStr = String(id);
+                    const stringIds = projects.map((proj: any) =>
+                        proj._id?.$oid ? String(proj._id.$oid) : String(proj._id)
+                    );
 
-        setFavorites(prev => {
-            let newFavs;
-            if (prev.includes(idStr)) {
-                newFavs = prev.filter(f => f !== idStr);
-            } else {
-                newFavs = [...prev, idStr];
+                    setFavorites(stringIds);
+                } catch (err) {
+                    console.error(err);
+                }
             }
-            localStorage.setItem("favorites", JSON.stringify(newFavs));
-            return newFavs;
-        });
+        };
+        loadFavorites();
+    }, [token]);
+
+    const toggleFavorite = async (projectId: string) => {
+        if (token) {
+            try {
+                await favoriteService.add(projectId, token);
+
+                setFavorites(prev =>
+                    prev.includes(projectId)
+                        ? prev.filter(id => id !== projectId)
+                        : [...prev, projectId]
+                );
+            } catch (err) {
+                console.error("Erreur toggle favoris API", err);
+            }
+        } else {
+            const newFavs = favorites.includes(projectId)
+                ? favorites.filter(id => id !== projectId)
+                : [...favorites, projectId];
+
+            setFavorites(newFavs);
+            localStorage.setItem('favorites', JSON.stringify(newFavs));
+        }
     };
 
     return (

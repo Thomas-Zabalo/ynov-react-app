@@ -16,7 +16,8 @@ const statusColors = {
 };
 
 export default function Favorites() {
-    const {data: favoriteProjects = [], loading, error} = useFetch<Project[]>(() => favoriteService.getAll(), []);
+    const token = localStorage.getItem('token') || '';
+    const {data: favoriteProjects = [], loading, error} = useFetch<Project[]>(() => favoriteService.getAll(token), [token]);
 
     if (loading) {
         return (
