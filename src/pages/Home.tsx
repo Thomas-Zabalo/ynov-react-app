@@ -5,6 +5,7 @@ import Hero from "../components/Hero.tsx";
 import {useFetch} from "../hook/useFetch.ts";
 import {projectService} from "../services/api.ts";
 
+
 const statusColors = {
     "Complété": {
         bg: "bg-green-50 dark:bg-green-900/30",
@@ -29,7 +30,9 @@ export default function Home() {
     const [currentPage, setCurrentPage] = useState(1);
     const projectsPerPage = 9;
 
-    const { data: projectList, loading, error } = useFetch(() => projectService.getAll(), []);
+    const { data: projectList, loading: projectsLoading, error } = useFetch(() => projectService.getAll(), []);
+
+    const loading = projectsLoading;
 
     const filteredProjects = (projectList || []).filter(project =>
         project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
