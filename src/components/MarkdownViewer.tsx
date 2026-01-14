@@ -2,8 +2,12 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter';
 import {oneDark} from 'react-syntax-highlighter/dist/esm/styles/prism';
+import {docco} from "react-syntax-highlighter/dist/cjs/styles/hljs";
+import {useTheme} from "../provider/themeProvider.tsx";
 
 export default function MarkdownViewer({content}: { content: string }) {
+    const { theme } = useTheme();
+
     return (
         <div className="
             prose prose-slate dark:prose-invert max-w-none
@@ -55,15 +59,14 @@ export default function MarkdownViewer({content}: { content: string }) {
                         return match ? (
                             <SyntaxHighlighter
                                 language={match[1]}
-                                style={oneDark}
+                                style={theme === 'dark' ? oneDark : docco}
                                 customStyle={{
                                     borderRadius: '0.5rem',
                                     padding: '1rem',
                                     fontSize: '0.875rem',
                                     overflowX: 'auto',
-                                    backgroundColor: '#282C34'
+                                    backgroundColor: theme === 'dark' ? '#282C34' : '#f5f5f5'
                                 }}
-                                // @ts-ignore
                                 PreTag="div"
                             >
                                 {String(children).replace(/\n$/, '')}
