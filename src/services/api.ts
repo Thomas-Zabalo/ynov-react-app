@@ -122,7 +122,7 @@ export const userService = {
             return Promise.resolve({
                 ...user,
                 projects: projects
-            });
+            }as unknown as User);
         }
 
         const response = await fetch(`/api/users/${id}`);
@@ -145,53 +145,47 @@ export const userService = {
     }
 };
 
-const isAuthenticated = () => {
-    return Boolean(localStorage.getItem('token'));
-};
-
 export const favoriteService = {
-    getAll: async (): Promise<Project[]> => {
-        const favoriteIds: string[] = JSON.parse(
-            localStorage.getItem('favorites') || '[]'
-        );
+    getAll: async (token: string): Promise<Project[]> => {
+        const response = await fetch('/api/favorites', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
 
-        if (!Array.isArray(favoriteIds) || favoriteIds.length === 0) {
-            return [];
-        }
+        if (!response.ok) throw new Error('Erreur de récupération');
 
-        if (IS_MOCK_MODE) {
-            return allProjectsData.filter(project => favoriteIds.includes(String(project._id))
-            ) as unknown as Project[];
-        }
+        const data = await response.json();
+        return data.favorites || [];
+    },
 
-        if (!isAuthenticated()) {
-            const response = await fetch('/api/projects');
-            if (!response.ok) return [];
+    clear: async() => {
+        localStorage.removeItem('favorites');
+    },
 
-            const projects: Project[] = await response.json();
-            return projects.filter(p =>
-                favoriteIds.includes(String(p._id))
-            );
-        }
+    sync: async (projectIds: string[], token: string) => {
+        const response = await fetch('/api/favorites/sync', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ projectIds }),
+        });
+        if (!response.ok) throw new Error('Erreur de synchronisation');
+        return response.json();
+    },
 
-        try {
-            const response = await fetch('/api/favorites', {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error();
+    add: async (id: string, token: string) => {
+        const response = await fetch(`/api/favorites/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             }
-
-            return response.json();
-        } catch {
-            const response = await fetch('/api/projects');
-            const projects: Project[] = await response.json();
-            return projects.filter(p =>
-                favoriteIds.includes(String(p._id))
-            );
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Erreur lors de l\'ajout aux favoris');
         }
+        return response.json();
     }
 };
