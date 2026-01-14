@@ -1,15 +1,16 @@
 # Gestionnaire de Projets - Frontend
 
-Une application web moderne et performante pour la gestion et le suivi de projets, développée avec React 18, Vite et TypeScript.
+Une application web moderne et performante pour la gestion et le suivi de projets, développée avec React 19, Vite 7 et TypeScript 5.
 
 ## Stack Technique
 
-* **Framework :** React (Version 18)
-* **Build Tool :** Vite
-* **Langage :** TypeScript
-* **Style :** Tailwind CSS
-* **Navigation :** React Router
+* **Framework :** React (Version 19)
+* **Build Tool :** Vite (Version 7)
+* **Langage :** TypeScript (Version 5.9)
+* **Style :** Tailwind CSS (Version 4) avec PostCSS
+* **Navigation :** React Router (Version 7)
 * **Gestion d'État :** Context API
+* **Contenu :** React Markdown avec support GFM et coloration syntaxique
 
 ---
 
@@ -19,17 +20,16 @@ L'application suit une structure modulaire permettant une séparation claire ent
 
 ```text
 src/
-├── components/         
-├── data/               
-├── hook/               
-├── pages/               
-├── provider/           
-├── routes/              
-├── services/           
-├── types/            
-├── utils/             
+├── components/         # Composants réutilisables (Cards, Hero, etc.)
+├── data/               # Données statiques et configurations des menus
+├── hook/               # Hooks personnalisés (useFetch, etc.)
+├── pages/              # Composants de page (Profil, Favoris, Projets)
+├── provider/           # Contextes globaux (Auth, Theme, Favorites)
+├── routes/             # Configuration du routage
+├── services/           # Appels API et logique de service
+├── types/              # Définitions des interfaces TypeScript
+├── utils/              # Fonctions utilitaires (formatage de date)
 └── main.tsx           
-
 ```
 
 ---
@@ -38,35 +38,40 @@ src/
 
 ### Les Providers (Context API)
 
-L'application utilise des Providers pour centraliser la logique métier et éviter le passage manuel de propriétés (Prop Drilling). Ils agissent comme une source unique de vérité :
+L'application utilise des Providers pour centraliser la logique métier et éviter le passage manuel de propriétés (Prop Drilling) :
 
-* **AuthProvider** : Gère la session utilisateur, le stockage du token JWT et les états de connexion/déconnexion.
-* **FavoriteProvider** : Centralise la liste des favoris, gère l'ajout/suppression et la synchronisation entre le mode invité et le compte utilisateur.
-* **ThemeProvider** : Pilote l'apparence de l'application (Mode Sombre / Clair).
+* **AuthProvider** : Gère la session utilisateur, le stockage du token JWT (via localStorage) et l'état de connexion global.
+* **FavoriteProvider** : Centralise la logique des favoris, gère l'ajout/suppression en temps réel et la synchronisation avec le backend.
+* **ThemeProvider** : Pilote l'apparence de l'application avec basculement dynamique entre les modes Sombre et Clair.
 
-### React Hooks
+### React Hooks & Optimisations
 
-L'application utilise les standards modernes de React pour optimiser la réactivité et les performances :
+L'application exploite les dernières fonctionnalités de React 19 pour garantir des performances optimales :
 
-* **useState & useEffect** : Pour la gestion d'état locale et les appels API.
-* **useContext** : Utilisé pour la gestion globale de l'état (Authentification, Thème Sombre/Clair, Gestion des Favoris).
-* **useMemo & useCallback** : Pour optimiser les performances en mémorisant des valeurs et des fonctions.
-* **useRef** : Pour accéder directement au DOM (ex: focus automatique).
-* **useNavigate & useParams** : Pour la navigation et la récupération de paramètres dans l'URL.
+* **useState & useEffect** : Gestion des états locaux et synchronisation des données au montage des composants.
+* **useContext** : Accès simplifié aux états globaux à travers toute la hiérarchie des composants.
+* **useMemo** : Mémorisation des calculs coûteux (filtrage des menus, formatage utilisateur) pour éviter les recalculs lors des rendus.
+* **useCallback** : Stabilisation des fonctions de rappel pour optimiser les performances des composants enfants et éviter les re-rendus inutiles.
+
+---
+
+## Configuration Réseau & Proxy
+
+L'application utilise un proxy de développement configuré dans `vite.config.ts` pour rediriger les requêtes vers le backend sans rencontrer de problèmes de CORS :
+
+* **Target** : `http://localhost:4000` (Serveur Backend)
+* **Configuration** : Les appels vers `/api` sont interceptés par Vite en mode développement et redirigés vers le serveur cible.
+* **Avantage** : Permet d'utiliser des chemins relatifs dans les services frontend sans exposer l'URL complète du backend.
 
 ---
 
 ## Fonctionnalités Clés
 
-* **Authentification Hybride** : Connexion classique et Social Login via GitHub OAuth, fonctionnant entièrement via JWT (stateless).
-* **Système de Favoris Intelligent** :
-* Mode Invité : Stockage initial dans le localStorage.
-* Synchronisation : Fusion automatique des favoris locaux vers le compte utilisateur lors de la connexion.
-* Persistance : Sauvegarde sur base de données en mode API.
-
-
-* **Mode API et Mock** : Possibilité de basculer instantanément entre des données réelles et simulées via les variables d'environnement.
-* **UI Responsive** : Interface fluide adaptée à tous les supports (mobile, tablette, desktop).
+* **Optimistic UI (Interface Réactive)** : Sur la page des favoris, les éléments sont retirés instantanément de l'affichage via un état local synchronisé avant même la confirmation serveur pour une fluidité maximale.
+* **Authentification Hybride** : Gestion complète des accès via JWT, incluant des routes protégées et une redirection automatique selon le statut de connexion.
+* **Rendu de Contenu Riche** : Intégration de `react-markdown` pour le support du Markdown étendu et coloration syntaxique du code via `react-syntax-highlighter`.
+* **Profil Utilisateur Avancé** : Calcul automatique des initiales, formatage des dates au standard français (`fr-FR`) et affichage dynamique des statistiques.
+* **UI Responsive & Moderne** : Utilisation de Tailwind CSS 4 pour une interface fluide et adaptative sur tous les supports.
 
 ---
 
@@ -74,22 +79,26 @@ L'application utilise les standards modernes de React pour optimiser la réactiv
 
 ### 1. Configuration
 
-Créez un fichier .env à la racine :
+Créez un fichier `.env` à la racine du projet :
 
 ```env
-VITE_API_URL=http://localhost:4000/api
 VITE_USE_MOCK=false
 ```
 
-### 2. Lancer l'application
+### 2. Installation des dépendances
 
 ```bash
 npm install
+```
+
+### 3. Lancer l'application en développement
+
+```bash
 npm run dev
 ```
 
-Pour tester sur mobile sur le même réseau local :
+### 4. Build pour la production
 
 ```bash
-npx vite --host
+npm run build
 ```
