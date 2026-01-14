@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Menu as MenuIcon, Moon, Sun, X, LogOut } from "lucide-react";
 import { useTheme } from "../../provider/themeProvider.tsx";
 import { useAuth } from "../../provider/authProvider.tsx";
+import {favoriteService} from "../../services/api.ts";
 
 export default function Menu() {
     const [isOpen, setIsOpen] = useState(false);
@@ -18,9 +19,11 @@ export default function Menu() {
     const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
     const handleLogout = () => {
+        favoriteService.clear();
         logout();
         closeMenu();
         navigate('/');
+        window.location.reload();
     };
 
     const filteredItems = menuItems.filter(item => {
