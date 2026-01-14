@@ -4,6 +4,7 @@ import {Link, useNavigate} from 'react-router';
 import Header from "../../components/navigation/Header.tsx";
 import {useAuth} from "../../provider/authProvider.tsx";
 import {favoriteService, userService} from "../../services/api.ts";
+import {useFavorites} from "../../provider/favoriteProvider.tsx";
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -11,7 +12,7 @@ export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-
+    const { refreshFavorites } = useFavorites();
     const {login} = useAuth();
     const navigate = useNavigate();
 
@@ -25,9 +26,14 @@ export default function Login() {
 
         if (token) {
             login(null, token);
-            navigate('/utilisateurs');
+
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            refreshFavorites().then(() => {
+                navigate('/mon-profil');
+            });
         }
-    }, [navigate, login]);
+    }, [navigate, login, refreshFavorites]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,7 +49,8 @@ export default function Login() {
                 localStorage.removeItem('favorites');
             }
             login(data.user, data.token);
-            navigate('/utilisateurs');
+            await refreshFavorites();
+            navigate('/mon-profil');
         } catch (err: any) {
             setError(err.message);
         } finally {
