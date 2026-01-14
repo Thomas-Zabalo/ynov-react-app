@@ -20,9 +20,10 @@ type ProjectCardProps = {
         text: string;
         icon: React.ElementType;
     };
+    onFavoriteToggle?: (projectId: string) => void;
 };
 
-export default function ProjectCard({ project, statusInfo }: ProjectCardProps) {
+export default function ProjectCard({ project, statusInfo, onFavoriteToggle }: ProjectCardProps) {
     const StatusIcon = statusInfo.icon;
     const { favorites, toggleFavorite } = useFavorites();
 
@@ -31,10 +32,15 @@ export default function ProjectCard({ project, statusInfo }: ProjectCardProps) {
         return String(id) === String(project._id);
     });
 
-    const handleToggleFavorite = (e: React.MouseEvent) => {
+    const handleToggleFavorite = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        toggleFavorite(project._id);
+
+        await toggleFavorite(project._id);
+
+        if (onFavoriteToggle) {
+            onFavoriteToggle(project._id);
+        }
     };
 
     return (

@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router';
-import { type ChangeEvent, useEffect, useState } from 'react';
+import {type ChangeEvent, useCallback, useEffect, useMemo, useState} from 'react';
 import { X, Save, FileText, Calendar, Users, Tag, BarChart3, Eye, Edit, ArrowLeft } from 'lucide-react';
 import { projectService, userService } from "../../services/api.ts";
 import type { Project } from "../../types";
@@ -76,20 +76,26 @@ export default function EditProject() {
         loadData();
     }, [id, navigate]);
 
-    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const usersMap = useMemo(() => {
+        const map = new Map();
+        availableUsers.forEach(u => map.set(u._id, u));
+        return map;
+    }, [availableUsers]);
+
+    const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-    };
+    }, []);
 
-    const addMemberById = (userId: string) => {
+    const addMemberById = useCallback((userId: string) => {
         if (userId && !formData.members.includes(userId)) {
             setFormData(prev => ({ ...prev, members: [...prev.members, userId] }));
         }
-    };
+    }, [formData.members]);
 
-    const removeMember = (memberId: string) => {
+    const removeMember = useCallback((memberId: string) => {
         setFormData(prev => ({ ...prev, members: prev.members.filter(m => m !== memberId) }));
-    };
+    }, []);
 
     const handleSubmit = async () => {
         if (!formData.name || !formData.description || !formData.startDate || !formData.endDate) {
@@ -195,7 +201,7 @@ export default function EditProject() {
                             </select>
                             <div className="flex flex-wrap gap-2">
                                 {formData.members.map((memberId) => {
-                                    const user = availableUsers.find(u => u._id === memberId);
+                                    const user = usersMap.get(memberId);
                                     return (
                                         <span key={memberId} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 font-medium text-sm border border-indigo-200 dark:border-indigo-800">
                                             {user?.fullName || user?.name || "Membre du projet"}

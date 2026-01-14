@@ -1,5 +1,5 @@
 import ProjectCard from "../components/ProjectCard.tsx";
-import {useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Calendar, CheckCircle2, Clock, Search} from "lucide-react";
 import Hero from "../components/Hero.tsx";
 import {useFetch} from "../hook/useFetch.ts";
@@ -26,28 +26,48 @@ const statusColors = {
 
 export default function Home() {
     const [searchQuery, setSearchQuery] = useState('');
-
     const [currentPage, setCurrentPage] = useState(1);
     const projectsPerPage = 9;
 
-    const { data: projectList, loading: projectsLoading, error } = useFetch(() => projectService.getAll(), []);
+    const searchRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        searchRef.current?.focus();
+    }, []);
+
+    const {data: projectList, loading: projectsLoading, error} = useFetch(() => projectService.getAll(), []);
 
     const loading = projectsLoading;
 
-    const filteredProjects = (projectList || []).filter(project =>
-        project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.category.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredProjects = useMemo(() => {
+        return (projectList || []).filter(project =>
+            project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            project.category.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [projectList, searchQuery]);
 
     const indexOfLastProject = currentPage * projectsPerPage;
     const indexOfFirstProject = indexOfLastProject - projectsPerPage;
-    const currentProjects = filteredProjects.slice(indexOfFirstProject, indexOfLastProject);
+
+    const currentProjects = useMemo(() => {
+        return filteredProjects.slice(indexOfFirstProject, indexOfLastProject);
+    }, [filteredProjects, indexOfFirstProject, indexOfLastProject]);
 
     const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
 
-    const handlePrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
-    const handleNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+    const handlePrevPage = useCallback(() => {
+        setCurrentPage(prev => Math.max(prev - 1, 1));
+    }, []);
+
+    const handleNextPage = useCallback(() => {
+        setCurrentPage(prev => Math.min(prev + 1, totalPages));
+    }, [totalPages]);
+
+    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value);
+        setCurrentPage(1);
+    }, []);
 
     return (
         <div className="min-h-screen">
@@ -63,10 +83,11 @@ export default function Home() {
                     <div className="relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"/>
                         <input
+                            ref={searchRef}
                             type="text"
                             placeholder="Rechercher un projet..."
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={handleSearchChange}
                             className="w-full pl-12 pr-4 py-3 rounded-lg
                                    border border-gray-300 dark:border-gray-600
                                    bg-white dark:bg-gray-900 text-black dark:text-white

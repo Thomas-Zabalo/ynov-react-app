@@ -1,5 +1,5 @@
 import type {Project} from "../../types";
-import {type ChangeEvent, useEffect, useState} from 'react';
+import {type ChangeEvent, useCallback, useEffect, useMemo, useState} from 'react';
 import {BarChart3, Calendar, Edit, Eye, FileText, Save, Tag, Users, X} from 'lucide-react';
 import {projectService, userService} from "../../services/api.ts";
 import {useNavigate} from "react-router";
@@ -56,26 +56,32 @@ export default function AddProject() {
         fetchUsers();
     }, [user]);
 
-    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const usersMap = useMemo(() => {
+        const map = new Map();
+        availableUsers.forEach(u => map.set(u._id, u));
+        return map;
+    }, [availableUsers]);
+
+    const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const {name, value} = e.target;
         setFormData(prev => ({...prev, [name]: value}));
-    };
+    }, []);
 
-    const addMemberById = (userId: string) => {
+    const addMemberById = useCallback((userId: string) => {
         if (userId && !formData.members.includes(userId)) {
             setFormData(prev => ({
                 ...prev,
                 members: [...prev.members, userId]
             }));
         }
-    };
+    }, [formData.members]);
 
-    const removeMember = (memberToRemove: string) => {
+    const removeMember = useCallback((memberToRemove: string) => {
         setFormData(prev => ({
             ...prev,
             members: prev.members.filter(m => m !== memberToRemove)
         }));
-    };
+    }, []);
 
     const handleSubmit = async () => {
         if (!formData.name || !formData.description || !formData.startDate || !formData.endDate) {
@@ -91,7 +97,7 @@ export default function AddProject() {
         }
     };
 
-    const insertMarkdownTemplate = () => {
+    const insertMarkdownTemplate = useCallback(() => {
         const template = `## À propos du projet
 
 Décrivez ici le contexte et les motivations derrière ce projet. Pourquoi avez-vous lancé ce projet ? Quels problèmes cherche-t-il à résoudre ?
@@ -117,7 +123,7 @@ Listez les technologies, frameworks, et outils utilisés dans ce projet.
 Quels sont les résultats que vous espérez obtenir à la fin du projet ? Comment mesurerez-vous le succès ?`;
 
         setFormData(prev => ({...prev, detailedContent: template}));
-    };
+    }, []);
 
     return (
         <div className="min-h-screen py-12">
@@ -280,7 +286,7 @@ Quels sont les résultats que vous espérez obtenir à la fin du projet ? Commen
 
                             <div className="flex flex-wrap gap-2">
                                 {formData.members.map((memberId) => {
-                                    const user = availableUsers.find(u => u._id === memberId);
+                                    const user = usersMap.get(memberId);
                                     return (
                                         <span key={memberId}
                                               className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 font-medium text-sm border border-indigo-200 dark:border-indigo-800">

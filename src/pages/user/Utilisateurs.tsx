@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router';
 import {Briefcase, Search} from 'lucide-react';
 import {useFetch} from "../../hook/useFetch.ts";
@@ -7,27 +7,47 @@ import {userService} from "../../services/api.ts";
 export default function Utilisateurs() {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
-
     const [currentPage, setCurrentPage] = useState(1);
     const usersPerPage = 10;
 
+    const searchInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        searchInputRef.current?.focus();
+    }, []);
+
     const {data: users, loading, error} = useFetch(() => userService.getAll(), []);
 
-    const filteredUsers = (users || []).filter(user => {
-        const name = `${user.name} ${user.surname}`;
-        const email = user.email || "";
-        return name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            email.toLowerCase().includes(searchTerm.toLowerCase());
-    });
+    const filteredUsers = useMemo(() => {
+        return (users || []).filter(user => {
+            const name = `${user.name} ${user.surname}`;
+            const email = user.email || "";
+            return name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                email.toLowerCase().includes(searchTerm.toLowerCase());
+        });
+    }, [users, searchTerm]);
 
     const indexOfLastUser = currentPage * usersPerPage;
     const indexOfFirstUser = indexOfLastUser - usersPerPage;
-    const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+
+    const currentUsers = useMemo(() => {
+        return filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+    }, [filteredUsers, indexOfFirstUser, indexOfLastUser]);
 
     const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
-    const handlePrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
-    const handleNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+    const handlePrevPage = useCallback(() => {
+        setCurrentPage(prev => Math.max(prev - 1, 1));
+    }, []);
+
+    const handleNextPage = useCallback(() => {
+        setCurrentPage(prev => Math.min(prev + 1, totalPages));
+    }, [totalPages]);
+
+    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1);
+    }, []);
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950">
@@ -60,13 +80,11 @@ export default function Utilisateurs() {
                             <Search
                                 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500"/>
                             <input
+                                ref={searchInputRef}
                                 type="text"
                                 placeholder="Rechercher un utilisateur..."
                                 value={searchTerm}
-                                onChange={(e) => {
-                                    setSearchTerm(e.target.value);
-                                    setCurrentPage(1);
-                                }}
+                                onChange={handleSearchChange}
                                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition"
                             />
                         </div>

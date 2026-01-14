@@ -12,8 +12,10 @@ export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const { refreshFavorites } = useFavorites();
+    const {refreshFavorites} = useFavorites();
+
     const {login} = useAuth();
+
     const navigate = useNavigate();
 
     const handleGithubLogin = () => {
@@ -25,18 +27,35 @@ export default function Login() {
         const token = params.get('token');
 
         if (token) {
-            login(null, token);
+            const handleAuth = async () => {
+                try {
+                    login(null, token);
 
-            window.history.replaceState({}, document.title, window.location.pathname);
+                    const localFavs = JSON.parse(localStorage.getItem('favorites') || '[]');
+                    if (localFavs.length > 0) {
+                        try {
+                            await favoriteService.sync(localFavs, token);
+                            localStorage.removeItem('favorites');
+                        } catch (err) {
+                            console.error("Échec de la synchronisation des favoris:", err);
+                        }
+                    }
 
-            refreshFavorites().then(() => {
-                navigate('/mon-profil');
-            });
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    await refreshFavorites();
+                    navigate('/mon-profil');
+                } catch (error) {
+                    setError("Erreur lors de l'authentification GitHub.");
+                }
+            };
+
+            handleAuth();
         }
     }, [navigate, login, refreshFavorites]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
         setIsLoading(true);
 
         try {

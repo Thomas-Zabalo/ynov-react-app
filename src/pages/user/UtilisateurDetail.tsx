@@ -3,11 +3,24 @@ import { ArrowLeft, CheckCircle, Clock, Calendar} from 'lucide-react';
 import {useFetch} from "../../hook/useFetch.ts";
 import type {User} from "../../types";
 import {userService} from "../../services/api.ts";
+import {useMemo} from "react";
 
 export default function UtilisateurDetail() {
     const { id } = useParams();
 
     const {data: user, loading, error} = useFetch<User>(() => userService.getById(id!), [id]);
+
+    const displayName = useMemo(() => {
+        return user?.name && user?.surname
+            ? `${user.name} ${user.surname}`
+            : "Utilisateur";
+    }, [user]);
+
+    const initials = useMemo(() => {
+        const first = user?.name?.[0] || "";
+        const last = user?.surname?.[0] || user?.email?.[0] || "?";
+        return (first + last).toUpperCase();
+    }, [user]);
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950">
@@ -22,17 +35,6 @@ export default function UtilisateurDetail() {
             {error && <p className="mt-2 text-red-500">{error}</p>}
         </div>
     );
-
-    const displayName = user.name && user.surname
-        ? `${user.name} ${user.surname}`
-        : "Utilisateur";
-
-    const initials = displayName
-        .split(' ')
-        .map((n: string) => n[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase();
 
     return (
         <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">

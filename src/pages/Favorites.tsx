@@ -4,6 +4,7 @@ import Hero from "../components/Hero.tsx";
 import {useFetch} from "../hook/useFetch.ts";
 import type {Project} from "../types";
 import {favoriteService} from "../services/api.ts";
+import {useCallback, useEffect, useMemo, useState} from "react";
 
 const statusColors = {
     "Complété": {
@@ -16,8 +17,22 @@ const statusColors = {
 };
 
 export default function Favorites() {
-    const token = localStorage.getItem('token') || '';
-    const {data: favoriteProjects = [], loading, error} = useFetch<Project[]>(() => favoriteService.getAll(token), [token]);
+    const token = useMemo(() => localStorage.getItem('token') || '', []);
+
+    const { data, loading, error } = useFetch<Project[]>(() => {
+        if (!token) return Promise.resolve([]);
+        return favoriteService.getAll(token);
+    }, [token]);
+
+    const [localProjects, setLocalProjects] = useState<Project[]>([]);
+
+    useEffect(() => {
+        if (data) setLocalProjects(data);
+    }, [data]);
+
+    const handleRemove = useCallback((projectId: string) => {
+        setLocalProjects(prev => prev.filter(p => p._id !== projectId));
+    }, []);
 
     if (loading) {
         return (
@@ -39,10 +54,9 @@ export default function Favorites() {
         <div className="min-h-screen flex flex-col">
             <Hero title="Mes favoris"/>
 
-            {favoriteProjects?.length === 0 ? (
+            {localProjects.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 px-6">
-                    <div
-                        className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-6">
+                    <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-6">
                         <Heart className="w-10 h-10 text-gray-400"/>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -51,13 +65,14 @@ export default function Favorites() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-6">
-                    {favoriteProjects?.map((project) => {
+                    {localProjects?.map((project) => {
                         const statusInfo = statusColors[project.status as keyof typeof statusColors] || statusColors["Planifié"];
                         return (
                             <ProjectCard
                                 key={project._id}
                                 project={project}
                                 statusInfo={statusInfo}
+                                onFavoriteToggle={() => handleRemove(project._id)}
                             />
                         )
                     })}

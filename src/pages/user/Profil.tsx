@@ -2,10 +2,23 @@ import {Link} from 'react-router';
 import {AlertCircle, Calendar, Loader2, Mail, Star, User} from 'lucide-react';
 import {userService} from "../../services/api.ts";
 import {useFetch} from "../../hook/useFetch.ts";
+import {useMemo} from "react";
 
 export default function Profil() {
 
     const {data: user, loading, error} = useFetch(() => userService.getMe(), []);
+
+    const displayName = useMemo(() => {
+        return user?.name && user?.surname
+            ? `${user.name} ${user.surname}`
+            : "Utilisateur";
+    }, [user]);
+
+    const initials = useMemo(() => {
+        const first = user?.name?.[0] || "";
+        const last = user?.surname?.[0] || user?.email?.[0] || "?";
+        return (first + last).toUpperCase();
+    }, [user]);
 
     if (loading) return (
         <div className="min-h-screen flex flex-col items-center justify-center ">
@@ -28,17 +41,6 @@ export default function Profil() {
             </div>
         </div>
     );
-
-    const displayName = user.name && user.surname
-        ? `${user.name} ${user.surname}`
-        : "Utilisateur";
-
-    const initials = displayName
-        .split(' ')
-        .map((n: string) => n[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase();
 
     return (
         <div className="min-h-screen py-12">

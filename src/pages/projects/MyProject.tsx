@@ -1,9 +1,14 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router';
-import { Trash2, Edit3, AlertTriangle, Briefcase, ArrowRight, Plus, Search } from 'lucide-react';
-import { projectService, userService } from "../../services/api.ts";
-import type { Project } from "../../types";
-import { useNavigate } from 'react-router';
+import {useEffect, useMemo, useState} from 'react';
+import {Link, useNavigate} from 'react-router';
+import {AlertTriangle, ArrowRight, Briefcase, Edit3, Plus, Search, Trash2} from 'lucide-react';
+import {projectService, userService} from "../../services/api.ts";
+import type {Project} from "../../types";
+
+const statusColors = {
+    "Complété": {bg: "bg-green-50 dark:bg-green-900/30", text: "text-green-700 dark:text-green-400"},
+    "En cours": {bg: "bg-blue-50 dark:bg-blue-900/30", text: "text-blue-700 dark:text-blue-400"},
+    "Planifié": {bg: "bg-gray-100 dark:bg-gray-700", text: "text-gray-700 dark:text-gray-300"},
+};
 
 export default function MyProject() {
     const navigate = useNavigate();
@@ -51,19 +56,12 @@ export default function MyProject() {
         }
     };
 
-    const getStatusStyle = (status: string) => {
-        const styles: any = {
-            'Complété': 'bg-green-100 text-green-700 border-green-200',
-            'En cours': 'bg-blue-100 text-blue-700 border-blue-200',
-            'Planifié': 'bg-gray-100 text-gray-700 border-gray-200'
-        };
-        return styles[status] || styles['Planifié'];
-    };
-
-    const filteredProjects = projects.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredProjects = useMemo(() => {
+        return projects.filter(p =>
+            p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.description.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [searchTerm, projects]);
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center">
@@ -80,13 +78,14 @@ export default function MyProject() {
                         <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Mes Projets</h1>
                         <p className="text-gray-600 dark:text-gray-400">Gérez et suivez l'avancement de vos travaux</p>
                     </div>
-                    <Link to="/projets/nouveau" className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md w-fit font-medium">
-                        <Plus className="w-5 h-5" /> Nouveau Projet
+                    <Link to="/projets/nouveau"
+                          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md w-fit font-medium">
+                        <Plus className="w-5 h-5"/> Nouveau Projet
                     </Link>
                 </div>
 
                 <div className="relative mb-8">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"/>
                     <input
                         type="text"
                         placeholder="Rechercher un projet..."
@@ -101,14 +100,15 @@ export default function MyProject() {
                         filteredProjects.map((project) => (
                             <Link
                                 key={project._id}
-                                to={`/documents/${project._id}`}
+                                to={`/projets/${project._id}`}
                                 className="flex flex-col bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:shadow-lg transition-all group relative"
                             >
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                                        <Briefcase className="w-6 h-6 text-indigo-600" />
+                                        <Briefcase className="w-6 h-6 text-indigo-600"/>
                                     </div>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusStyle(project.status)}`}>
+                                    <span
+                                        className={`px-3 py-1 rounded-full text-xs font-bold border ${statusColors[project.status as keyof typeof statusColors]?.bg} ${statusColors[project.status as keyof typeof statusColors]?.text}`}>
                                         {project.status}
                                     </span>
                                 </div>
@@ -121,7 +121,8 @@ export default function MyProject() {
                                     {project.description}
                                 </p>
 
-                                <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800">
+                                <div
+                                    className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800">
                                     <div className="flex gap-1">
                                         <button
                                             onClick={(e) => {
@@ -130,7 +131,7 @@ export default function MyProject() {
                                             }}
                                             className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition"
                                         >
-                                            <Edit3 className="w-5 h-5" />
+                                            <Edit3 className="w-5 h-5"/>
                                         </button>
 
                                         <button
@@ -141,16 +142,18 @@ export default function MyProject() {
                                             }}
                                             className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
                                         >
-                                            <Trash2 className="w-5 h-5" />
+                                            <Trash2 className="w-5 h-5"/>
                                         </button>
                                     </div>
-                                    <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
+                                    <ArrowRight
+                                        className="w-5 h-5 text-gray-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all"/>
                                 </div>
                             </Link>
                         ))
                     ) : (
-                        <div className="col-span-full py-20 text-center bg-white dark:bg-gray-900 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800">
-                            <Briefcase className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <div
+                            className="col-span-full py-20 text-center bg-white dark:bg-gray-900 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800">
+                            <Briefcase className="w-12 h-12 text-gray-300 mx-auto mb-4"/>
                             <p className="text-gray-500">Aucun projet trouvé.</p>
                         </div>
                     )}
@@ -158,17 +161,20 @@ export default function MyProject() {
             </div>
 
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-800 animate-in zoom-in-95 duration-200">
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div
+                        className="bg-white dark:bg-gray-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-800 animate-in zoom-in-95 duration-200">
                         <div className="flex items-center gap-4 text-red-600 mb-4">
                             <div className="p-3 bg-red-100 dark:bg-red-900/20 rounded-full">
-                                <AlertTriangle className="w-6 h-6" />
+                                <AlertTriangle className="w-6 h-6"/>
                             </div>
                             <h3 className="text-xl font-bold">Supprimer le projet ?</h3>
                         </div>
 
                         <p className="text-gray-600 dark:text-gray-400 mb-6">
-                            Êtes-vous sûr de vouloir supprimer <span className="font-semibold text-gray-900 dark:text-white">"{projectToDelete?.name}"</span> ?
+                            Êtes-vous sûr de vouloir supprimer <span
+                            className="font-semibold text-gray-900 dark:text-white">"{projectToDelete?.name}"</span> ?
                             Cette action est définitive.
                         </p>
 

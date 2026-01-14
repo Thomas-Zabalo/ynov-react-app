@@ -130,7 +130,7 @@ export default function ProjectDetail() {
 
                                 <div className="flex flex-wrap gap-2">
                                     {members.map((member) => {
-                                        const initials = `${member.name[0]}${member.surname[0]}`.toUpperCase();
+                                        const initials = `${member.name?.[0] || '?'}${member.surname?.[0] || ''}`.toUpperCase();
                                         return (
                                             <Link
                                                 key={member._id}

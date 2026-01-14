@@ -1,39 +1,51 @@
-import { NavLink, useNavigate } from "react-router";
-import { menuItems } from "../../data/menu.ts";
-import { useState } from "react";
-import { Menu as MenuIcon, Moon, Sun, X, LogOut } from "lucide-react";
-import { useTheme } from "../../provider/themeProvider.tsx";
-import { useAuth } from "../../provider/authProvider.tsx";
+import {NavLink, useNavigate} from "react-router";
+import {menuItems} from "../../data/menu.ts";
+import {useCallback, useMemo, useState} from "react";
+import {LogOut, Menu as MenuIcon, Moon, Sun, X} from "lucide-react";
+import {useTheme} from "../../provider/themeProvider.tsx";
+import {useAuth} from "../../provider/authProvider.tsx";
 import {favoriteService} from "../../services/api.ts";
 
 export default function Menu() {
     const [isOpen, setIsOpen] = useState(false);
-    const { theme, setTheme } = useTheme();
-    const { token, logout } = useAuth();
+    const {theme, setTheme} = useTheme();
+    const {token, logout} = useAuth();
     const navigate = useNavigate();
 
     const isAuthenticated = !!token;
 
-    const toggleMenu = () => setIsOpen(!isOpen);
-    const closeMenu = () => setIsOpen(false);
-    const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
+    const toggleMenu = useCallback(() => {
+        setIsOpen(prev => !prev);
+    }, []);
 
-    const handleLogout = () => {
+    const closeMenu = useCallback(() => {
+        setIsOpen(false);
+    }, []);
+
+    const toggleTheme = useCallback(() => {
+        setTheme(theme === "dark" ? "light" : "dark");
+    }, [theme, setTheme]);
+
+    const handleLogout = useCallback(() => {
         favoriteService.clear();
         logout();
         closeMenu();
         navigate('/');
         window.location.reload();
-    };
+    }, [logout, navigate]);
 
-    const filteredItems = menuItems.filter(item => {
-        if (item.isPrivate && !isAuthenticated) return false;
-        if (item.isGuest && isAuthenticated) return false;
-        return true;
-    });
+    const { mainItems, bottomItems } = useMemo(() => {
+        const filtered = menuItems.filter(item => {
+            if (item.isPrivate && !isAuthenticated) return false;
+            if (item.isGuest && isAuthenticated) return false;
+            return true;
+        });
 
-    const mainItems = filteredItems.filter(item => item.main);
-    const bottomItems = filteredItems.filter(item => !item.main);
+        return {
+            mainItems: filtered.filter(item => item.main),
+            bottomItems: filtered.filter(item => !item.main)
+        };
+    }, [isAuthenticated]);
 
     return (
         <>
@@ -47,16 +59,20 @@ export default function Menu() {
             )}
 
             {isOpen && (
-                <div className="fixed inset-0 bg-black/50 z-30 max-2xl:block hidden" onClick={closeMenu} />
+                <div className="fixed inset-0 bg-black/50 z-30 max-2xl:block hidden" onClick={closeMenu}/>
             )}
 
-            <div className={`col-start-1 row-span-2 row-start-1 transition-all duration-300 max-2xl:fixed max-2xl:left-0 max-2xl:top-0 max-2xl:h-dvh max-2xl:z-40 max-2xl:w-64 ${
-                isOpen ? "max-2xl:translate-x-0" : "max-2xl:-translate-x-full"
-            }`}>
-                <div className="sticky top-0 z-50 flex h-full max-h-dvh flex-col bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800">
+            <div
+                className={`col-start-1 row-span-2 row-start-1 transition-all duration-300 max-2xl:fixed max-2xl:left-0 max-2xl:top-0 max-2xl:h-dvh max-2xl:z-40 max-2xl:w-64 ${
+                    isOpen ? "max-2xl:translate-x-0" : "max-2xl:-translate-x-full"
+                }`}>
+                <div
+                    className="sticky top-0 z-50 flex h-full max-h-dvh flex-col bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800">
 
-                    <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
-                        <NavLink to="/" onClick={closeMenu} className="text-sm font-semibold text-gray-900 dark:text-white">
+                    <div
+                        className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
+                        <NavLink to="/" onClick={closeMenu}
+                                 className="text-sm font-semibold text-gray-900 dark:text-white">
                             Ynov react app
                         </NavLink>
                         <button onClick={closeMenu} className="max-2xl:block hidden text-gray-900 dark:text-white">
@@ -81,7 +97,7 @@ export default function Menu() {
                                                 }`
                                             }
                                         >
-                                            <Icon className="w-6 h-6" strokeWidth={1.5} />
+                                            <Icon className="w-6 h-6" strokeWidth={1.5}/>
                                             {item.name}
                                         </NavLink>
                                     </li>
@@ -92,8 +108,10 @@ export default function Menu() {
 
                     <div className="mt-auto">
                         <div className="p-4">
-                            <button onClick={toggleTheme} className="w-full flex items-center gap-x-3 p-2 rounded-md text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 transition">
-                                {theme === "dark" ? <><Sun className="w-6 h-6"/> Mode clair</> : <><Moon className="w-6 h-6"/> Mode sombre</>}
+                            <button onClick={toggleTheme}
+                                    className="w-full flex items-center gap-x-3 p-2 rounded-md text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 transition">
+                                {theme === "dark" ? <><Sun className="w-6 h-6"/> Mode clair</> : <><Moon
+                                    className="w-6 h-6"/> Mode sombre</>}
                             </button>
                         </div>
 
@@ -103,8 +121,9 @@ export default function Menu() {
                                     const Icon = item.icon;
                                     return (
                                         <li key={item.to}>
-                                            <NavLink to={item.to} onClick={closeMenu} className="flex items-center gap-x-3 p-2 rounded-md text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 transition">
-                                                <Icon className="w-6 h-6" strokeWidth={1.5} />
+                                            <NavLink to={item.to} onClick={closeMenu}
+                                                     className="flex items-center gap-x-3 p-2 rounded-md text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 transition">
+                                                <Icon className="w-6 h-6" strokeWidth={1.5}/>
                                                 {item.name}
                                             </NavLink>
                                         </li>
@@ -117,7 +136,7 @@ export default function Menu() {
                                             onClick={handleLogout}
                                             className="w-full flex items-center gap-x-3 p-2 rounded-md text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition"
                                         >
-                                            <LogOut className="w-6 h-6" strokeWidth={1.5} />
+                                            <LogOut className="w-6 h-6" strokeWidth={1.5}/>
                                             Déconnexion
                                         </button>
                                     </li>
