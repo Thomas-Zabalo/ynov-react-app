@@ -1,8 +1,9 @@
 import { useParams, useNavigate } from 'react-router';
-import { type ChangeEvent, type ReactNode, useEffect, useState } from 'react';
+import { type ChangeEvent, useEffect, useState } from 'react';
 import { X, Save, FileText, Calendar, Users, Tag, BarChart3, Eye, Edit, ArrowLeft } from 'lucide-react';
 import { projectService, userService } from "../../services/api.ts";
 import type { Project } from "../../types";
+import MarkdownViewer from "../../components/MarkdownViewer.tsx";
 
 type ProjectCategory = Project['category'];
 type ProjectStatus = Project['status'];
@@ -18,7 +19,7 @@ interface ProjectFormData {
     detailedContent: string;
 }
 
-const categories: ProjectCategory[] = ["Design", "Backend", "Developpement", "Frontend"];
+const categories: ProjectCategory[] = ["Design", "Backend", "Developpement", "Infrastructure", "QA", "Documentation"];
 const statuses: ProjectStatus[] = ["Planifié", "En cours", "Complété"];
 
 export default function EditProject() {
@@ -60,7 +61,6 @@ export default function EditProject() {
                     status: project.status,
                     startDate: project.startDate.split('T')[0],
                     endDate: project.endDate.split('T')[0],
-                    // On nettoie les membres pour enlever l'auteur s'il y était
                     members: project.members
                         .map((m: any) => typeof m === 'string' ? m : m._id)
                         .filter((mId: string) => mId !== me._id),
@@ -92,7 +92,6 @@ export default function EditProject() {
     };
 
     const handleSubmit = async () => {
-        // Validation strictement identique à AddProject
         if (!formData.name || !formData.description || !formData.startDate || !formData.endDate) {
             alert('Veuillez remplir tous les champs obligatoires (*)');
             return;
@@ -100,40 +99,11 @@ export default function EditProject() {
 
         try {
             if (!id) return;
-            await projectService.update(id, formData);
+            await projectService.update(id, formData as unknown as Partial<Project>);
             navigate('/mes-projets');
         } catch (error: any) {
             alert(error.message || "Erreur lors de la mise à jour");
         }
-    };
-
-    const renderMarkdown = (text: string) => {
-        if (!text) return null;
-        const lines = text.split('\n');
-        const elements: ReactNode[] = [];
-        let currentParagraph: string[] = [];
-
-        lines.forEach((line, idx) => {
-            if (line.startsWith('## ')) {
-                if (currentParagraph.length > 0) {
-                    elements.push(<p key={`p-${idx}`} className="mb-4 text-gray-700 dark:text-gray-300 leading-relaxed">{currentParagraph.join(' ')}</p>);
-                    currentParagraph = [];
-                }
-                elements.push(<h2 key={`h2-${idx}`} className="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4 first:mt-0">{line.replace('## ', '')}</h2>);
-            } else if (line.trim() === '') {
-                if (currentParagraph.length > 0) {
-                    elements.push(<p key={`p-empty-${idx}`} className="mb-4 text-gray-700 dark:text-gray-300 leading-relaxed">{currentParagraph.join(' ')}</p>);
-                    currentParagraph = [];
-                }
-            } else {
-                currentParagraph.push(line);
-            }
-        });
-
-        if (currentParagraph.length > 0) {
-            elements.push(<p key="p-last" className="mb-4 text-gray-700 dark:text-gray-300 leading-relaxed">{currentParagraph.join(' ')}</p>);
-        }
-        return elements;
     };
 
     if (loading) return (
@@ -255,8 +225,15 @@ export default function EditProject() {
                             {!previewMode ? (
                                 <textarea name="detailedContent" value={formData.detailedContent} onChange={handleChange} rows={12} className="w-full px-4 py-2.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition resize-none font-mono outline-none" />
                             ) : (
-                                <div className="w-full min-h-[300px] px-4 py-2.5 rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 prose prose-sm max-w-none dark:prose-invert">
-                                    {formData.detailedContent ? renderMarkdown(formData.detailedContent) : <p className="text-gray-400 italic">Aucun contenu...</p>}
+                                <div
+                                    className="w-full min-h-[400px] px-6 py-6 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-y-auto shadow-inner">
+                                    {formData.detailedContent ? (
+                                        <MarkdownViewer content={formData.detailedContent}/>
+                                    ) : (
+                                        <p className="text-gray-400 italic text-center mt-10">
+                                            Rien à prévisualiser pour le moment...
+                                        </p>
+                                    )}
                                 </div>
                             )}
                         </div>
