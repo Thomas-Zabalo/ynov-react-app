@@ -147,6 +147,16 @@ export const userService = {
 
 export const favoriteService = {
     getAll: async (token: string): Promise<Project[]> => {
+        if (IS_MOCK_MODE) {
+            const savedFavorites = localStorage.getItem('favorites');
+            const favoriteIds: string[] = savedFavorites ? JSON.parse(savedFavorites) : [];
+
+            const favoriteProjects = (allProjectsData as unknown as Project[]).filter(project =>
+                favoriteIds.includes(String(project._id))
+            );
+
+            return Promise.resolve(favoriteProjects);
+        }
         const response = await fetch('/api/favorites', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
