@@ -4,6 +4,7 @@ import {useFetch} from "../../hook/useFetch.ts";
 import type {Project} from "../../types";
 import {formatDate} from "../../utils/dateFormatter.tsx";
 import {projectService} from "../../services/api.ts";
+import MarkdownViewer from "../../components/MarkdownViewer.tsx";
 
 const categoryColors = {
     Design: "bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400",
@@ -43,28 +44,6 @@ export default function ProjectDetail() {
             {error && <p className="mt-2 text-red-500">{error}</p>}
         </div>
     );
-
-    const parseMarkdown = (text: string = "") => {
-        if (!text) return <p className="text-gray-500 italic">Aucune documentation détaillée disponible.</p>;
-
-        return text.split('\n').map((line, i) => {
-            if (line.startsWith('## ')) {
-                return (
-                    <h2 key={i} className="text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4 first:mt-0">
-                        {line.replace('## ', '')}
-                    </h2>
-                );
-            }
-            if (line.trim()) {
-                return (
-                    <p key={i} className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                        {line}
-                    </p>
-                );
-            }
-            return <div key={i} className="h-2"/>;
-        });
-    };
 
     const members = project.members || [];
     const author = project.author;
@@ -186,8 +165,14 @@ export default function ProjectDetail() {
                                 <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Documentation
                                     du projet</h2>
                             </div>
-                            <div className="prose prose-sm sm:prose base prose-gray dark:prose-invert max-w-none">
-                                {parseMarkdown(project.detailedContent)}
+                            <div className="w-full min-h-[400px]">
+                                {project.detailedContent ? (
+                                    <MarkdownViewer content={project.detailedContent} />
+                                ) : (
+                                    <p className="text-gray-400 italic text-center mt-10">
+                                        Aucune documentation détaillée disponible pour ce projet.
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
