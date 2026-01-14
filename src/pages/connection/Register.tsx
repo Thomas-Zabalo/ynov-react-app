@@ -2,6 +2,7 @@ import {useState} from "react";
 import {AlertCircle, Eye, EyeOff, Github, Lock, Mail, User} from "lucide-react";
 import {Link, useNavigate} from "react-router";
 import Header from "../../components/navigation/Header.tsx";
+import {userService} from "../../services/api.ts";
 
 export default function Register() {
     const [name, setName] = useState('');
@@ -17,7 +18,7 @@ export default function Register() {
     const navigate = useNavigate();
 
     const handleGithubLogin = () => {
-        window.location.href = 'http://localhost:5000/api/auth/github';
+        window.location.href = 'http://localhost:4000/api/auth/github';
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -32,23 +33,16 @@ export default function Register() {
         setIsLoading(true);
 
         try {
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    fullName: name,
-                    email,
-                    password
-                }),
+            const data = await userService.register({
+                name,
+                surname,
+                email,
+                password
             });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Erreur lors de l\'inscription');
+            if (data.token) {
+                localStorage.setItem('token', data.token);
             }
-
-            if (data.token) localStorage.setItem('token', data.token);
 
             navigate('/login');
         } catch (err: any) {
@@ -86,10 +80,12 @@ export default function Register() {
                             <div className="relative">
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"/>
                                 <input
+                                    name="firstname"
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="Prénom"
+                                    autoComplete="given-name"
                                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
                                     required
                                 />
@@ -102,10 +98,12 @@ export default function Register() {
                             <div className="relative">
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"/>
                                 <input
+                                    name="lastname"
                                     type="text"
                                     value={surname}
                                     onChange={(e) => setSurname(e.target.value)}
                                     placeholder="Nom"
+                                    autoComplete="family-name"
                                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
                                     required
                                 />
@@ -119,10 +117,12 @@ export default function Register() {
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"/>
                                 <input
+                                    name="email"
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="Email"
+                                    autoComplete="email"
                                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
                                     required
                                 />
@@ -135,10 +135,12 @@ export default function Register() {
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"/>
                                 <input
+                                    name="password"
                                     type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Mot de passe"
+                                    autoComplete="new-password"
                                     className="w-full pl-10 pr-10 py-2.5 bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
                                     required
                                 />
@@ -155,10 +157,12 @@ export default function Register() {
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"/>
                                 <input
+                                    name="confirm-password"
                                     type={showConfirmPassword ? 'text' : 'password'}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="Confirmer mot de passe"
+                                    autoComplete="new-password"
                                     className="w-full pl-10 pr-10 py-2.5 bg-gray-50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
                                     required
                                 />
