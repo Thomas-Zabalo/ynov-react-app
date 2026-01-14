@@ -2,6 +2,7 @@ import { Calendar, Users, Heart } from "lucide-react";
 import {NavLink} from "react-router";
 import {formatDate} from "../utils/dateFormatter.tsx";
 import { useFavorites } from "../provider/favoriteProvider.tsx";
+import type {Project} from "../types";
 
 const categoryColors = {
     Design: "bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400",
@@ -24,7 +25,11 @@ type ProjectCardProps = {
 export default function ProjectCard({ project, statusInfo }: ProjectCardProps) {
     const StatusIcon = statusInfo.icon;
     const { favorites, toggleFavorite } = useFavorites();
-    const isFavorite = favorites.includes(String(project._id));
+
+    const isFavorite = favorites.some((favId: string | Project) => {
+        const id = typeof favId === 'object' ? favId._id : favId;
+        return String(id) === String(project._id);
+    });
 
     const handleToggleFavorite = (e: React.MouseEvent) => {
         e.preventDefault();
