@@ -1,73 +1,95 @@
-# React + TypeScript + Vite
+# Gestionnaire de Projets - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Une application web moderne et performante pour la gestion et le suivi de projets, développée avec React 18, Vite et TypeScript.
 
-Currently, two official plugins are available:
+## Stack Technique
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+* **Framework :** React (Version 18)
+* **Build Tool :** Vite
+* **Langage :** TypeScript
+* **Style :** Tailwind CSS
+* **Navigation :** React Router
+* **Gestion d'État :** Context API
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Architecture du Projet
 
-## Expanding the ESLint configuration
+L'application suit une structure modulaire permettant une séparation claire entre l'interface, la logique métier et la communication API :
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```text
+src/
+├── components/         
+├── data/               
+├── hook/               
+├── pages/               
+├── provider/           
+├── routes/              
+├── services/           
+├── types/            
+├── utils/             
+└── main.tsx           
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Logique et Gestion d'État
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Les Providers (Context API)
+
+L'application utilise des Providers pour centraliser la logique métier et éviter le passage manuel de propriétés (Prop Drilling). Ils agissent comme une source unique de vérité :
+
+* **AuthProvider** : Gère la session utilisateur, le stockage du token JWT et les états de connexion/déconnexion.
+* **FavoriteProvider** : Centralise la liste des favoris, gère l'ajout/suppression et la synchronisation entre le mode invité et le compte utilisateur.
+* **ThemeProvider** : Pilote l'apparence de l'application (Mode Sombre / Clair).
+
+### React Hooks
+
+L'application utilise les standards modernes de React pour optimiser la réactivité et les performances :
+
+* **useState & useEffect** : Pour la gestion d'état locale et les appels API.
+* **useContext** : Utilisé pour la gestion globale de l'état (Authentification, Thème Sombre/Clair, Gestion des Favoris).
+* **useMemo & useCallback** : Pour optimiser les performances en mémorisant des valeurs et des fonctions.
+* **useRef** : Pour accéder directement au DOM (ex: focus automatique).
+* **useNavigate & useParams** : Pour la navigation et la récupération de paramètres dans l'URL.
+
+---
+
+## Fonctionnalités Clés
+
+* **Authentification Hybride** : Connexion classique et Social Login via GitHub OAuth, fonctionnant entièrement via JWT (stateless).
+* **Système de Favoris Intelligent** :
+* Mode Invité : Stockage initial dans le localStorage.
+* Synchronisation : Fusion automatique des favoris locaux vers le compte utilisateur lors de la connexion.
+* Persistance : Sauvegarde sur base de données en mode API.
+
+
+* **Mode API et Mock** : Possibilité de basculer instantanément entre des données réelles et simulées via les variables d'environnement.
+* **UI Responsive** : Interface fluide adaptée à tous les supports (mobile, tablette, desktop).
+
+---
+
+## Installation et Démarrage
+
+### 1. Configuration
+
+Créez un fichier .env à la racine :
+
+```env
+VITE_API_URL=http://localhost:4000/api
+VITE_USE_MOCK=false
+```
+
+### 2. Lancer l'application
+
+```bash
+npm install
+npm run dev
+```
+
+Pour tester sur mobile sur le même réseau local :
+
+```bash
+npx vite --host
 ```
