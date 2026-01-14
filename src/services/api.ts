@@ -147,6 +147,7 @@ export const userService = {
 
 export const favoriteService = {
     getAll: async (token: string): Promise<Project[]> => {
+
         if (IS_MOCK_MODE) {
             const savedFavorites = localStorage.getItem('favorites');
             const favoriteIds: string[] = savedFavorites ? JSON.parse(savedFavorites) : [];
@@ -157,14 +158,32 @@ export const favoriteService = {
 
             return Promise.resolve(favoriteProjects);
         }
-        const response = await fetch('/api/favorites', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        if(token){
+            const response = await fetch('/api/favorites', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
 
-        if (!response.ok) throw new Error('Erreur de récupération');
+            if (!response.ok) throw new Error('Erreur de récupération');
 
-        const data = await response.json();
-        return data.favorites || [];
+            const data = await response.json();
+            return data.favorites || [];
+        }
+
+        const savedFavorites = localStorage.getItem('favorites');
+        const favoriteIds: string[] = savedFavorites ? JSON.parse(savedFavorites) : [];
+
+        if (favoriteIds.length > 0) {
+            const response = await fetch('/api/projects');
+            if (!response.ok) return [];
+
+            const allProjects: Project[] = await response.json();
+            // On filtre pour ne garder que ceux qui sont dans le localStorage
+            return allProjects.filter(project =>
+                favoriteIds.includes(String(project._id))
+            );
+        }
+
+        return [];
     },
 
     clear: async() => {

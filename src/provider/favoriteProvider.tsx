@@ -1,5 +1,5 @@
-import {createContext, useContext, useEffect, useState} from "react";
 import * as React from "react";
+import {createContext, useContext, useEffect, useState} from "react";
 import {favoriteService} from "../services/api.ts";
 
 const IS_MOCK_MODE = import.meta.env.VITE_USE_MOCK === 'true';
@@ -10,21 +10,24 @@ const FavoriteContext = createContext<{
     refreshFavorites: () => Promise<void>
 }>({
     favorites: [],
-    toggleFavorite: async () => {},
-    refreshFavorites: async () => {},
+    toggleFavorite: async () => {
+    },
+    refreshFavorites: async () => {
+    },
 });
 
-export function FavoriteProvider({ children }: { children: React.ReactNode }) {
+export function FavoriteProvider({children}: { children: React.ReactNode }) {
     const [favorites, setFavorites] = useState<string[]>([]);
 
     const loadFavorites = async () => {
         const currentToken = localStorage.getItem('token');
+        const saved = localStorage.getItem("favorites");
+        const localIds = saved ? JSON.parse(saved) : [];
 
         if (IS_MOCK_MODE) {
             const saved = localStorage.getItem("favorites");
             if (saved) setFavorites(JSON.parse(saved));
-        }
-        else if (currentToken) {
+        } else if (currentToken) {
             try {
                 const data = await favoriteService.getAll(currentToken);
                 const ids = (data || []).map((p: any) => String(p._id || p));
@@ -33,7 +36,7 @@ export function FavoriteProvider({ children }: { children: React.ReactNode }) {
                 console.error("Erreur chargement favoris API", err);
             }
         } else {
-            setFavorites([]);
+            setFavorites(localIds);
         }
     };
 
@@ -48,7 +51,7 @@ export function FavoriteProvider({ children }: { children: React.ReactNode }) {
     const toggleFavorite = async (id: string) => {
         const idStr = String(id);
         const isRemoving = favorites.includes(idStr);
-        const currentToken = localStorage.getItem('token'); // Récupéré ici
+        const currentToken = localStorage.getItem('token');
 
         try {
             if (!IS_MOCK_MODE && currentToken) {
@@ -60,9 +63,7 @@ export function FavoriteProvider({ children }: { children: React.ReactNode }) {
                     ? prev.filter(f => f !== idStr)
                     : [...prev, idStr];
 
-                if (IS_MOCK_MODE) {
-                    localStorage.setItem("favorites", JSON.stringify(newFavs));
-                }
+                localStorage.setItem("favorites", JSON.stringify(newFavs));
                 return newFavs;
             });
 
@@ -72,7 +73,7 @@ export function FavoriteProvider({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <FavoriteContext.Provider value={{ favorites, toggleFavorite, refreshFavorites }}>
+        <FavoriteContext.Provider value={{favorites, toggleFavorite, refreshFavorites}}>
             {children}
         </FavoriteContext.Provider>
     );
