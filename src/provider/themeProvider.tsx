@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useMemo } from "react";
 import * as React from "react";
 
 type Theme = "light" | "dark";
@@ -8,7 +8,7 @@ const ThemeContext = createContext<{
     setTheme: (theme: Theme) => void;
 }>({
     theme: "light",
-    setTheme: () => {},
+    setTheme: () => { },
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -27,8 +27,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("theme", theme);
     }, [theme]);
 
+    const value = useMemo(() => ({
+        theme, setTheme
+    }), [theme]);
+
     return (
-        <ThemeContext.Provider value={{ theme, setTheme }}>
+        <ThemeContext.Provider value={value}>
             {children}
         </ThemeContext.Provider>
     );

@@ -48,6 +48,7 @@ L'application utilise des Providers pour centraliser la logique métier et évit
 
 L'application exploite les dernières fonctionnalités de React 19 pour garantir des performances optimales :
 
+* **Lazy Loading & Suspense** : Chargement des pages à la demande (Code Splitting) pour réduire le temps de chargement initial.
 * **useState & useEffect** : Gestion des états locaux et synchronisation des données au montage des composants.
 * **useContext** : Accès simplifié aux états globaux à travers toute la hiérarchie des composants.
 * **useMemo** : Mémorisation des calculs coûteux (filtrage des menus, formatage utilisateur) pour éviter les recalculs lors des rendus.

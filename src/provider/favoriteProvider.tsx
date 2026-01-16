@@ -1,6 +1,6 @@
 import * as React from "react";
-import {createContext, useContext, useEffect, useState} from "react";
-import {favoriteService} from "../services/api.ts";
+import { createContext, useContext, useEffect, useState } from "react";
+import { favoriteService } from "../services/api.ts";
 
 const IS_MOCK_MODE = import.meta.env.VITE_USE_MOCK === 'true';
 
@@ -16,7 +16,7 @@ const FavoriteContext = createContext<{
     },
 });
 
-export function FavoriteProvider({children}: { children: React.ReactNode }) {
+export function FavoriteProvider({ children }: { children: React.ReactNode }) {
     const [favorites, setFavorites] = useState<string[]>([]);
 
     const loadFavorites = async () => {
@@ -73,7 +73,7 @@ export function FavoriteProvider({children}: { children: React.ReactNode }) {
     }
 
     return (
-        <FavoriteContext.Provider value={{favorites, toggleFavorite, refreshFavorites}}>
+        <FavoriteContext.Provider value={{ favorites, toggleFavorite, refreshFavorites }}>
             {children}
         </FavoriteContext.Provider>
     );
